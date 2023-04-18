@@ -77,6 +77,8 @@ const plugins = [
       // other options...
       settings: {
         products: {
+          applicationId: process.env.ALGOLIA_APP_ID,
+          adminApiKey: process.env.ALGOLIA_ADMIN_API_KEY,
           indexSettings: {
             searchableAttributes: ["title", "description"],
             attributesToRetrieve: [
@@ -93,8 +95,8 @@ const plugins = [
               "images",
             ],
           },
-          transform: (product) => ({ 
-            id: product.id, 
+          transform: (product) => ({
+            id: product.id,
             // other attributes...
           }),
         },

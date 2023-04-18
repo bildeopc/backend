@@ -18,7 +18,7 @@
     "watch": "tsc --watch",
     "test": "jest",
     "seed": "medusa seed -f ./data/seed.json",
-    "start": "yarn build && medusa start -H 192.168.68.81",
+    "start": "yarn build && medusa start -H 0.0.0.0",
     "build:admin": "medusa-admin build",
     "proxy": "local-ssl-proxy --source 9001 --target 9000"
   },

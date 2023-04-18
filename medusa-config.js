@@ -71,6 +71,36 @@ const plugins = [
       secret_access_key: process.env.MINIO_SECRET_KEY,
     },
   },
+  {
+    resolve: `medusa-plugin-algolia`,
+    options: {
+      // other options...
+      settings: {
+        products: {
+          indexSettings: {
+            searchableAttributes: ["title", "description"],
+            attributesToRetrieve: [
+              "id",
+              "title",
+              "description",
+              "handle",
+              "thumbnail",
+              "variants",
+              "variant_sku",
+              "options",
+              "collection_title",
+              "collection_handle",
+              "images",
+            ],
+          },
+          transform: (product) => ({ 
+            id: product.id, 
+            // other attributes...
+          }),
+        },
+      },
+    },
+  },
 ];
 
 const modules = {

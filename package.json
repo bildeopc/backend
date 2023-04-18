@@ -18,8 +18,9 @@
     "watch": "tsc --watch",
     "test": "jest",
     "seed": "medusa seed -f ./data/seed.json",
-    "start": "yarn build && medusa start",
-    "build:admin": "medusa-admin build"
+    "start": "yarn build && medusa start -H 192.168.68.81",
+    "build:admin": "medusa-admin build",
+    "proxy": "local-ssl-proxy --source 9001 --target 9000"
   },
   "dependencies": {
     "@babel/preset-typescript": "^7.21.4",
@@ -39,6 +40,7 @@
     "medusa-interfaces": "^1.3.7",
     "medusa-payment-manual": "^1.0.23",
     "medusa-payment-stripe": "^2.0.0",
+    "medusa-plugin-algolia": "^0.2.12",
     "medusa-plugin-sendgrid": "^1.3.8",
     "typeorm": "^0.3.11"
   },
@@ -52,6 +54,7 @@
     "cross-env": "^5.2.1",
     "eslint": "^6.8.0",
     "jest": "^27.3.1",
+    "local-ssl-proxy": "^2.0.5",
     "mongoose": "^5.13.14",
     "rimraf": "^3.0.2",
     "ts-jest": "^27.0.7",

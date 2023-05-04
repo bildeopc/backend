@@ -13,15 +13,12 @@
     "medusa"
   ],
   "scripts": {
-    "clean": "./node_modules/.bin/rimraf dist",
-    "build": "yarn run clean && tsc -p tsconfig.json",
-    "watch": "tsc --watch",
-    "test": "jest",
-    "seed": "medusa seed -f ./data/seed.json",
-    "start": "yarn build && medusa start -H 0.0.0.0",
-    "build:admin": "medusa-admin build",
-    "proxy": "local-ssl-proxy --source 9001 --target 9000"
-  },
+    "serve": "medusa start",
+    "start": "medusa develop",
+    "heroku-postbuild": "medusa migrations run",
+    "prepare": "npm run build",
+    "build": "babel src -d dist --extensions \".ts,.js\""
+},
   "dependencies": {
     "@babel/preset-typescript": "^7.21.4",
     "@medusajs/admin": "^2.0.0",

@@ -77,17 +77,22 @@ const ErrorIntentStatus = {
       }
     }
     async authorizePayment(
-      paymentSessionData: Record<string, unknown>, 
-      context: Record<string, unknown>
-    ): Promise<
-      PaymentProcessorError | 
-      { 
-        status: PaymentSessionStatus; 
-        data: Record<string, unknown>; 
-      }
-    > {
-      throw new Error("Method not implemented.")
+    paymentSessionData: Record<string, unknown>, 
+    context: Record<string, unknown>
+  ): Promise<
+    PaymentProcessorError | 
+    { 
+      status: PaymentSessionStatus; 
+      data: Record<string, unknown>; 
     }
+  > {
+    return {
+      status: PaymentSessionStatus.AUTHORIZED,
+      data: {
+        id: "test",
+      },
+    }
+  }
     async cancelPayment(
       paymentSessionData: Record<string, unknown>
     ): Promise<Record<string, unknown> | PaymentProcessorError> {

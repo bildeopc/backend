@@ -91,8 +91,21 @@ const ErrorIntentStatus = {
     }
     async cancelPayment(
       paymentSessionData: Record<string, unknown>
-    ): Promise<Record<string, unknown> | PaymentProcessorError> {
-      throw new Error("Method not implemented.")
+    ): Promise<
+      PaymentProcessorError | PaymentProcessorSessionResponse["session_data"]
+    > {
+      try {
+        const id = paymentSessionData.id as string
+        return (await this.stripe_.paymentIntents.cancel(
+          id
+        )) as unknown as PaymentProcessorSessionResponse["session_data"]
+      } catch (error) {
+        if (error.payment_intent?.status === ErrorIntentStatus.CANCELED) {
+          return error.payment_intent
+        }
+  
+        return this.buildError("An error occurred in cancelPayment", error)
+      }
     }
     async initiatePayment(
       context: PaymentProcessorContext

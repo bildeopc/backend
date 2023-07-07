@@ -96,8 +96,7 @@ const ErrorIntentStatus = {
     > {
       try {
         const id = paymentSessionData.id as string
-        const strip = new Stripe(process.env.STRIPE_API_KEY,{apiVersion:"2022-11-15"})
-        return (await strip.paymentIntents.cancel(
+        return (await this.stripe_.paymentIntents.cancel(
           id
         )) as unknown as PaymentProcessorSessionResponse["session_data"]
       } catch (error) {
@@ -129,7 +128,8 @@ const ErrorIntentStatus = {
         amount: Math.round(amount),
         currency: currency_code,
         metadata: { resource_id },
-        payment_method_types: ["grabpay"]
+        payment_method_types: ["grabpay"],
+        capture_method: "automatic",
         // ...intentRequestData,
       }
   
@@ -159,8 +159,7 @@ const ErrorIntentStatus = {
 
       let session_data
       try {
-        const strip = new Stripe(process.env.STRIPE_API_KEY,{apiVersion:"2022-11-15"})
-        session_data = (await strip.paymentIntents.create(
+        session_data = (await this.stripe_.paymentIntents.create(
           intentRequest
         )) as unknown as Record<string, unknown>
       } catch (e) {

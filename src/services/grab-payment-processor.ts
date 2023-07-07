@@ -77,22 +77,18 @@ const ErrorIntentStatus = {
       }
     }
     async authorizePayment(
-    paymentSessionData: Record<string, unknown>, 
-    context: Record<string, unknown>
-  ): Promise<
-    PaymentProcessorError | 
-    { 
-      status: PaymentSessionStatus; 
-      data: Record<string, unknown>; 
+      paymentSessionData: Record<string, unknown>,
+      context: Record<string, unknown>
+    ): Promise<
+      | PaymentProcessorError
+      | {
+          status: PaymentSessionStatus
+          data: PaymentProcessorSessionResponse["session_data"]
+        }
+    > {
+      const status = await this.getPaymentStatus(paymentSessionData)
+      return { data: paymentSessionData, status }
     }
-  > {
-    return {
-      status: PaymentSessionStatus.AUTHORIZED,
-      data: {
-        id: "test",
-      },
-    }
-  }
     async cancelPayment(
       paymentSessionData: Record<string, unknown>
     ): Promise<Record<string, unknown> | PaymentProcessorError> {
@@ -173,8 +169,10 @@ const ErrorIntentStatus = {
     }
     async deletePayment(
       paymentSessionData: Record<string, unknown>
-    ): Promise<Record<string, unknown> | PaymentProcessorError> {
-      return paymentSessionData
+    ): Promise<
+      PaymentProcessorError | PaymentProcessorSessionResponse["session_data"]
+    > {
+      return await this.cancelPayment(paymentSessionData)
     }
     async getPaymentStatus(
       paymentSessionData: Record<string, unknown>
@@ -182,25 +180,85 @@ const ErrorIntentStatus = {
       throw new Error("Method not implemented.")
     }
     async refundPayment(
-      paymentSessionData: Record<string, unknown>, 
+      paymentSessionData: Record<string, unknown>,
       refundAmount: number
-    ): Promise<Record<string, unknown> | PaymentProcessorError> {
-      throw new Error("Method not implemented.")
+    ): Promise<
+      PaymentProcessorError | PaymentProcessorSessionResponse["session_data"]
+    > {
+      const id = paymentSessionData.id as string
+  
+      try {
+        await this.stripe_.refunds.create({
+          amount: Math.round(refundAmount),
+          payment_intent: id as string,
+        })
+      } catch (e) {
+        return this.buildError("An error occurred in refundPayment", e)
+      }
+  
+      return paymentSessionData
     }
     async retrievePayment(
       paymentSessionData: Record<string, unknown>
-    ): Promise<Record<string, unknown> | PaymentProcessorError> {
-      throw new Error("Method not implemented.")
+    ): Promise<
+      PaymentProcessorError | PaymentProcessorSessionResponse["session_data"]
+    > {
+      try {
+        const id = paymentSessionData.id as string
+        const intent = await this.stripe_.paymentIntents.retrieve(id)
+        return intent as unknown as PaymentProcessorSessionResponse["session_data"]
+      } catch (e) {
+        return this.buildError("An error occurred in retrievePayment", e)
+      }
     }
     async updatePayment(
       context: PaymentProcessorContext
-    ): Promise<
-      void | 
-      PaymentProcessorError | 
-      PaymentProcessorSessionResponse
-    > {
-      throw new Error("Method not implemented.")
+    ): Promise<PaymentProcessorError | PaymentProcessorSessionResponse | void> {
+      const { amount, customer, paymentSessionData } = context
+      const stripeId = customer?.metadata?.stripe_id
+  
+      if (stripeId !== paymentSessionData.customer) {
+        const result = await this.initiatePayment(context)
+        if (isPaymentProcessorError(result)) {
+          return this.buildError(
+            "An error occurred in updatePayment during the initiate of the new payment for the new customer",
+            result
+          )
+        }
+  
+        return result
+      } else {
+        if (amount && paymentSessionData.amount === Math.round(amount)) {
+          return
+        }
+  
+        try {
+          const id = paymentSessionData.id as string
+          const sessionData = (await this.stripe_.paymentIntents.update(id, {
+            amount: Math.round(amount),
+          })) as unknown as PaymentProcessorSessionResponse["session_data"]
+  
+          return { session_data: sessionData }
+        } catch (e) {
+          return this.buildError("An error occurred in updatePayment", e)
+        }
+      }
     }
+
+/**
+   * Constructs Stripe Webhook event
+   * @param {object} data - the data of the webhook request: req.body
+   * @param {object} signature - the Stripe signature on the event, that
+   *    ensures integrity of the webhook event
+   * @return {object} Stripe Webhook event
+   */
+constructWebhookEvent(data, signature) {
+  return this.stripe_.webhooks.constructEvent(
+    data,
+    signature,
+    this.options_.webhook_secret
+  )
+}
 
     protected buildError(
       message: string,

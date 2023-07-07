@@ -96,7 +96,8 @@ const ErrorIntentStatus = {
     > {
       try {
         const id = paymentSessionData.id as string
-        return (await this.stripe_.paymentIntents.cancel(
+        const strip = new Stripe(process.env.STRIPE_API_KEY,{apiVersion:"2022-11-15"})
+        return (await strip.paymentIntents.cancel(
           id
         )) as unknown as PaymentProcessorSessionResponse["session_data"]
       } catch (error) {

@@ -39,7 +39,7 @@ const ErrorIntentStatus = {
   
     static identifier = "grab-payment"
     protected readonly options_: StripeOptions
-    protected stripe_: Stripe
+    protected stripe__: Stripe
   
     protected constructor(_, options) {
       super(_, options)
@@ -50,8 +50,8 @@ const ErrorIntentStatus = {
     }
 
     protected init(): void {
-      this.stripe_ =
-        this.stripe_ ||
+      this.stripe__ =
+        this.stripe__ ||
         new Stripe(this.options_.api_key, {
           apiVersion: "2022-11-15",
         })
@@ -64,7 +64,7 @@ const ErrorIntentStatus = {
     > {
       const id = paymentSessionData.id as string
       try {
-        const intent = await this.stripe_.paymentIntents.capture(id)
+        const intent = await this.stripe__.paymentIntents.capture(id)
         return intent as unknown as PaymentProcessorSessionResponse["session_data"]
       } catch (error) {
         if (error.code === ErrorCodes.PAYMENT_INTENT_UNEXPECTED_STATE) {
@@ -96,7 +96,7 @@ const ErrorIntentStatus = {
     > {
       try {
         const id = paymentSessionData.id as string
-        return (await this.stripe_.paymentIntents.cancel(
+        return (await this.stripe__.paymentIntents.cancel(
           id
         )) as unknown as PaymentProcessorSessionResponse["session_data"]
       } catch (error) {
@@ -142,7 +142,7 @@ const ErrorIntentStatus = {
       } else {
         let stripeCustomer
         try {
-          stripeCustomer = await this.stripe_.customers.create({
+          stripeCustomer = await this.stripe__.customers.create({
             email,
           })
         } catch (e) {
@@ -159,7 +159,7 @@ const ErrorIntentStatus = {
 
       let session_data
       try {
-        session_data = (await this.stripe_.paymentIntents.create(
+        session_data = (await this.stripe__.paymentIntents.create(
           intentRequest
         )) as unknown as Record<string, unknown>
       } catch (e) {
@@ -191,7 +191,7 @@ const ErrorIntentStatus = {
       paymentSessionData: Record<string, unknown>
     ): Promise<PaymentSessionStatus> {
       const id = paymentSessionData.id as string
-      const paymentIntent = await this.stripe_.paymentIntents.retrieve(id)
+      const paymentIntent = await this.stripe__.paymentIntents.retrieve(id)
   
       switch (paymentIntent.status) {
         case "requires_payment_method":
@@ -218,7 +218,7 @@ const ErrorIntentStatus = {
       const id = paymentSessionData.id as string
   
       try {
-        await this.stripe_.refunds.create({
+        await this.stripe__.refunds.create({
           amount: Math.round(refundAmount),
           payment_intent: id as string,
         })
@@ -235,7 +235,7 @@ const ErrorIntentStatus = {
     > {
       try {
         const id = paymentSessionData.id as string
-        const intent = await this.stripe_.paymentIntents.retrieve(id)
+        const intent = await this.stripe__.paymentIntents.retrieve(id)
         return intent as unknown as PaymentProcessorSessionResponse["session_data"]
       } catch (e) {
         return this.buildError("An error occurred in retrievePayment", e)
@@ -264,7 +264,7 @@ const ErrorIntentStatus = {
   
         try {
           const id = paymentSessionData.id as string
-          const sessionData = (await this.stripe_.paymentIntents.update(id, {
+          const sessionData = (await this.stripe__.paymentIntents.update(id, {
             amount: Math.round(amount),
           })) as unknown as PaymentProcessorSessionResponse["session_data"]
   
@@ -283,7 +283,7 @@ const ErrorIntentStatus = {
    * @return {object} Stripe Webhook event
    */
 constructWebhookEvent(data, signature) {
-  return this.stripe_.webhooks.constructEvent(
+  return this.stripe__.webhooks.constructEvent(
     data,
     signature,
     this.options_.webhook_secret

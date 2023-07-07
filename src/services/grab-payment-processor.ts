@@ -190,7 +190,24 @@ const ErrorIntentStatus = {
     async getPaymentStatus(
       paymentSessionData: Record<string, unknown>
     ): Promise<PaymentSessionStatus> {
-      throw new Error("Method not implemented.")
+      const id = paymentSessionData.id as string
+      const paymentIntent = await this.stripe_.paymentIntents.retrieve(id)
+  
+      switch (paymentIntent.status) {
+        case "requires_payment_method":
+        case "requires_confirmation":
+        case "processing":
+          return PaymentSessionStatus.PENDING
+        case "requires_action":
+          return PaymentSessionStatus.REQUIRES_MORE
+        case "canceled":
+          return PaymentSessionStatus.CANCELED
+        case "requires_capture":
+        case "succeeded":
+          return PaymentSessionStatus.AUTHORIZED
+        default:
+          return PaymentSessionStatus.PENDING
+      }
     }
     async refundPayment(
       paymentSessionData: Record<string, unknown>,

@@ -101,10 +101,7 @@ const ErrorIntentStatus = {
     async initiatePayment(
       context: PaymentProcessorContext
     ): Promise<PaymentProcessorError | PaymentProcessorSessionResponse> {
-      const intentRequestData = {
-  payment_method_types: ["grabpay"]
-
-      }
+     
       const {
         email,
         context: cart_context,
@@ -122,6 +119,7 @@ const ErrorIntentStatus = {
         amount: Math.round(amount),
         currency: currency_code,
         metadata: { resource_id },
+        payment_method_types: ["grabpay"]
         // ...intentRequestData,
       }
   
